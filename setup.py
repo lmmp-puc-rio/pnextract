@@ -2,6 +2,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from packaging.tags import sys_tags
 from setuptools import Distribution, setup
 from setuptools.command.bdist_wheel import bdist_wheel
 from setuptools.command.build_py import build_py
@@ -35,7 +36,9 @@ class BuildPy(build_py):
 
 class BdistWheel(bdist_wheel):
     def get_tag(self):
-        _, _, platform = super().get_tag()
+        platform = next(
+            tag.platform for tag in sys_tags() if tag.platform.startswith("manylinux")
+        )
         return "py3", "none", platform
 
 
