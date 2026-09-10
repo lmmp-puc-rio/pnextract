@@ -1,41 +1,54 @@
+# pnextract
+
+[![Package](https://github.com/lmmp-puc-rio/pnextract/actions/workflows/package.yml/badge.svg)](https://github.com/lmmp-puc-rio/pnextract/actions/workflows/package.yml)
+[![PyPI](https://img.shields.io/pypi/v/pnextract)](https://pypi.org/project/pnextract/)
 
 
+**pnextract** is a C++ application for extracting pore networks from images and statistical reconstructions of porous materials. The extracted networks preserve the topology of the pore space and provide geometric information used in pore-network modelling and related analyses.
 
+The project originates from the **Imperial College London pore-scale modelling group**. This repository is a fork of [`ImperialCollegeLondon/pnextract`](https://github.com/ImperialCollegeLondon/pnextract).
 
-![make and test](https://github.com/aliraeini/pnextract/workflows/make%20and%20test/badge.svg)
+## About this fork
 
-##  pnextract - pore-network extraction
-**pnextract** is an open-source software written in C++ that extracts pore networks from images or statistical reconstructions of porous materials. These pore networks preserve the topology of the pore space and also calculate other parameters, such as the pore size distribution, interfacial area, and volume needed for analysis and simulations. Network extraction is normally the first step for further analysis and modelling, to predict flow and transport processes in porous materials, and to analyse three-dimensional images. This code provides essential network files for pore network flow model ([**pnflow**](https://github.com/aliraeini/pnflow)). 
+This fork is maintained by [**LMMP/PUC-Rio**](https://github.com/LMMP-PUC-Rio) to provide packaging, automated builds, and binary distribution of **pnextract**. Distribution through this fork is done with permission.
 
-**Note: this repository is same as [pnflow repository](https://github.com/aliraeini/pnflow) but without the pnflow code.**
+Where appropriate, changes that are generally useful to **pnextract** rather than specific to the **LMMP/PUC-Rio** distribution should be proposed back to the [upstream project](https://github.com/ImperialCollegeLondon/pnextract).
 
+## Installation
 
- ----------------------------------------------------------------
+### PyPI
 
-## See [src/pnm](src/pnm) and [doc](doc) for details on pnextract code.
+Despite not strictly being a Python application, **pnextract** is distributed as a package on [PyPI](https://pypi.org/project/pnextract/)
 
-## See [src/script/README.md](src/script/README.md) for compile/build instructions.
+Thus, it can be installed with `pip`:
 
-See also README files of other modules which are located in their own directories:    
-[src/libvoxel](src/libvoxel), [src/script](src/script) and in [thirdparty](thirdparty).
+```bash
+pip install pnextract
+```
 
+or with [**uv**](https://github.com/astral-sh/uv):
 
- ----------------------------------------------------------------
+```bash
+uv tool install pnextract
+```
 
-Download the [bin.7z](bin.7z) for pre-compiled Windows executables. 
+This installs the command-line tools:
 
-### Contact and References ###
+```text
+pnextract
+voxelImageProcess
+```
 
-For contacts and references please see: 
-https://www.imperial.ac.uk/earth-science/research/research-groups/pore-scale-modelling
+### Standalone binaries
 
+Pre-built binaries produced by **LMMP/PUC-Rio** are attached to releases of this repository. Currently these target Linux only.
 
-Alternatively, contact Sajjad Foroughi:
-- Email: s.foroughi@imperial.ac.uk
-- Additional Email: foroughi.sajad@gmail.com
+### Building from source
 
---
+Clone the repository and run:
 
-For more in-depth understanding of the pnextract code, users can refer to following papers related to this topic, which may provide additional insights:
-- [Pore-network extraction from micro-computerized-tomography images](https://journals.aps.org/pre/abstract/10.1103/PhysRevE.80.036307)
-- [Generalized network modeling: Network extraction as a coarse-scale discretization of the void space of porous media](https://journals.aps.org/pre/abstract/10.1103/PhysRevE.96.013312) 
+```bash
+make
+```
+
+For additional build information, see [`src/script/README.md`](src/script/README.md).

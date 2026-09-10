@@ -58,3 +58,6 @@ thirdparty/**/bin/
 *.exe
 *.out
 *.app
+
+# Python packaging
+dist/

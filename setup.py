@@ -1,24 +1,48 @@
-import os
+import shutil
 import subprocess
 from pathlib import Path
 
-from setuptools import setup
-from setuptools.command.build_py import build_py as _build_py
+from setuptools import Distribution, setup
+from setuptools.command.bdist_wheel import bdist_wheel
+from setuptools.command.build_py import build_py
 
-class build_py(_build_py):
+BINARIES = (
+    "pnextract",
+    "voxelImageProcess",
+)
+
+
+class BinaryDistribution(Distribution):
+    def has_ext_modules(self):
+        return True
+
+
+class BuildPy(build_py):
     def run(self):
-        subprocess.run(["make"], check=True)
+        binaries = [Path("bin") / name for name in BINARIES]
 
-        pnextract_name = "pnextract" + (".exe" if os.name == "nt" else "")
-        (Path("bin") / pnextract_name).rename(Path("python/pnextract/") / pnextract_name)
-
-        voxel_image_process_name = "voxelImageProcess" + (".exe" if os.name == "nt" else "")
-        (Path("bin") / voxel_image_process_name).rename(Path("python/pnextract/") / voxel_image_process_name)
+        if not all(path.is_file() for path in binaries):
+            subprocess.run(["make"], check=True)
 
         super().run()
 
+        package_dir = Path(self.build_lib) / "pnextract"
+        package_dir.mkdir(parents=True, exist_ok=True)
+
+        for binary in binaries:
+            shutil.copy2(binary, package_dir / binary.name)
+
+
+class BdistWheel(bdist_wheel):
+    def get_tag(self):
+        _, _, platform = super().get_tag()
+        return "py3", "none", platform
+
+
 setup(
-    cmdclass={"build_py": build_py},
-    package_dir={"": "python"},
-    package_data={"pnextract": ["pnextract*", "voxelImageProcess*"]},
+    distclass=BinaryDistribution,
+    cmdclass={
+        "build_py": BuildPy,
+        "bdist_wheel": BdistWheel,
+    },
 )
