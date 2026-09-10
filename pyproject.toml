@@ -1,13 +1,14 @@
 [build-system]
 requires = [
-    "cmake>=2.8.11,<4",
-    "setuptools>=70",
+    "cmake>=3.31.10,<4",
+    "setuptools>=84",
+    "setuptools-scm[simple]>=10.2.3,<11",
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pnextract"
-version = "0.0.0"
+dynamic = ["version"]
 license = "MIT"
 description = "Pore network extraction from micro-CT images of porous media"
 readme = "README.md"
@@ -15,17 +16,19 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Science/Research",
+    "Operating System :: POSIX :: Linux",
     "Programming Language :: C++",
     "Topic :: Scientific/Engineering :: Image Processing",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.6"
 
 [project.scripts]
 pnextract = "pnextract.__main__:pnextract"
 voxelImageProcess = "pnextract.__main__:voxel_image_process"
 
 [project.urls]
-Homepage = "https://github.com/ImperialCollegeLondon/pnextract"
-Documentation = "https://github.com/ImperialCollegeLondon/pnextract/tree/master/doc"
-Repository = "https://github.com/ImperialCollegeLondon/pnextract"
-Issues = "https://github.com/ImperialCollegeLondon/pnextract/issues"
+Repository = "https://github.com/lmmp-puc-rio/pnextract"
+
+[tool.setuptools]
+package-dir = {"" = "python"}
+packages = ["pnextract"]
