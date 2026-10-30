@@ -1,5 +1,6 @@
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 from packaging.tags import sys_tags
@@ -11,6 +12,8 @@ BINARIES = (
     "pnextract",
     "voxelImageProcess",
 )
+WINDOWS_WHEEL = sys.platform == "win32"
+BINARY_SUFFIX = ".exe" if WINDOWS_WHEEL else ""
 
 
 class BinaryDistribution(Distribution):
@@ -20,10 +23,15 @@ class BinaryDistribution(Distribution):
 
 class BuildPy(build_py):
     def run(self):
-        binaries = [Path("bin") / name for name in BINARIES]
+        binaries = [Path("bin") / f"{name}{BINARY_SUFFIX}" for name in BINARIES]
 
         if not all(path.is_file() for path in binaries):
-            subprocess.run(["make"], check=True)
+            command = (
+                ["cmd.exe", "/d", "/c", "msys2", "-c", "make mgw"]
+                if WINDOWS_WHEEL
+                else ["make"]
+            )
+            subprocess.run(command, check=True)
 
         super().run()
 
@@ -36,9 +44,11 @@ class BuildPy(build_py):
 
 class BdistWheel(bdist_wheel):
     def get_tag(self):
-        platform = next(
-            tag.platform for tag in sys_tags() if tag.platform.startswith("manylinux")
-        )
+        _, _, platform = super().get_tag()
+        if sys.platform.startswith("linux"):
+            platform = next(
+                tag.platform for tag in sys_tags() if tag.platform.startswith("manylinux")
+            )
         return "py3", "none", platform
 
 

@@ -14,22 +14,56 @@ permissions:
   id-token: write
 
 jobs:
-  package:
+  sdist:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v10.0.1
       - name: Build
-        run: uv build
+        run: uv build --sdist
+      - name: Publish to PyPI
+        if: github.event_name == 'release'
+        run: uv publish
+
+  wheel:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v10.0.1
+      - uses: msys2/setup-msys2@v2
+        if: runner.os == 'Windows'
+        with:
+          msystem: UCRT64
+          update: true
+          path-type: inherit
+          install: >-
+            make
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-libgomp
+      - name: Build
+        run: uv build --wheel
       - name: Smoke test
-        run: |
-          uv venv
-          source .venv/bin/activate
-          uv pip install dist/*.whl
-          pnextract -h
+        run: uv run --no-project --with ./dist/*.whl pnextract -h
+      - name: Extract standalone binaries
+        run: uv run --no-project python -m zipfile -e ./dist/*.whl standalone
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pnextract-${{ runner.os }}
+          path: |
+            dist/*
+            standalone/pnextract/pnextract*
+            standalone/pnextract/voxelImageProcess*
       - name: Publish to PyPI
         if: github.event_name == 'release'
         run: uv publish
@@ -38,9 +72,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          unzip -p dist/*.whl pnextract/pnextract > pnextract
-          unzip -p dist/*.whl pnextract/voxelImageProcess > voxelImageProcess
-          chmod +x pnextract voxelImageProcess
           gh release upload "${{ github.event.release.tag_name }}" \
-            pnextract \
-            voxelImageProcess
+            standalone/pnextract/pnextract* \
+            standalone/pnextract/voxelImageProcess*
