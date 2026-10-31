@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -57,9 +57,27 @@ jobs:
         run: uv run --no-project --with ./dist/*.whl pnextract -h
       - name: Extract standalone binaries
         run: uv run --no-project python -m zipfile -e ./dist/*.whl standalone
+      - name: Determine archive name
+        id: archive
+        run: |
+          case "${{ runner.os }}" in
+            Linux) release_os=linux; archive_extension=tar.gz ;;
+            Windows) release_os=windows; archive_extension=zip ;;
+            macOS) release_os=macos; archive_extension=tar.gz ;;
+            *) echo "Unsupported operating system: ${{ runner.os }}" >&2; exit 1 ;;
+          esac
+
+          case "${{ runner.arch }}" in
+            X64) release_arch=x86_64 ;;
+            ARM64) release_arch=arm64 ;;
+            *) echo "Unsupported architecture: ${{ runner.arch }}" >&2; exit 1 ;;
+          esac
+
+          echo "name=pnextract-${release_os}-${release_arch}" >> "$GITHUB_OUTPUT"
+          echo "extension=${archive_extension}" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v7
         with:
-          name: pnextract-${{ runner.os }}
+          name: ${{ steps.archive.outputs.name }}
           path: |
             dist/*
             standalone/pnextract/pnextract*
@@ -67,11 +85,26 @@ jobs:
       - name: Publish to PyPI
         if: github.event_name == 'release'
         run: uv publish
-      - name: Upload binaries to GitHub Release
+      - name: Stage release archive
+        if: github.event_name == 'release'
+        run: |
+          archive="${{ steps.archive.outputs.name }}"
+          mkdir "$archive"
+          cp standalone/pnextract/pnextract* "$archive/"
+          cp standalone/pnextract/voxelImageProcess* "$archive/"
+      - name: Create Unix release archive
+        if: runner.os != 'Windows' && github.event_name == 'release'
+        run: tar -czf "${{ steps.archive.outputs.name }}.tar.gz" "${{ steps.archive.outputs.name }}"
+      - name: Create Windows release archive
+        if: runner.os == 'Windows' && github.event_name == 'release'
+        run: >-
+          uv run --no-project python -m zipfile -c
+          "${{ steps.archive.outputs.name }}.zip"
+          "${{ steps.archive.outputs.name }}"
+      - name: Upload archive to GitHub Release
         if: github.event_name == 'release'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release upload "${{ github.event.release.tag_name }}" \
-            standalone/pnextract/pnextract* \
-            standalone/pnextract/voxelImageProcess*
+            "${{ steps.archive.outputs.name }}.${{ steps.archive.outputs.extension }}"

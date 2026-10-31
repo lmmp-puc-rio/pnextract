@@ -1,3 +1,4 @@
+import os
 import shutil
 import subprocess
 import sys
@@ -14,6 +15,9 @@ BINARIES = (
 )
 WINDOWS_WHEEL = sys.platform == "win32"
 BINARY_SUFFIX = ".exe" if WINDOWS_WHEEL else ""
+
+if sys.platform == "darwin":
+    os.environ.setdefault("MACOSX_DEPLOYMENT_TARGET", "11.0")
 
 
 class BinaryDistribution(Distribution):

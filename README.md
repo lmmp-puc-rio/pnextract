@@ -41,7 +41,7 @@ voxelImageProcess
 
 ### Standalone binaries
 
-Pre-built 64-bit Linux and Windows binaries produced by **LMMP/PUC-Rio** are attached to releases of this repository.
+Pre-built Linux, macOS and Windows archives containing `pnextract` and `voxelImageProcess`, produced by **LMMP/PUC-Rio**, are attached to releases of this repository.
 
 ### Building from source
 
